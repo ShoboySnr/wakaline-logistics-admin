@@ -255,7 +255,7 @@ export default function ClientSidebar({ client }: { client: ClientDetail }) {
         )}
       </Panel>
 
-      <Panel title="Bank Details" subtitle="Shown in the Daily Remit popup">
+      <Panel title="Bank Details">
         {client.bank_name || client.bank_account_number || client.bank_account_name ? (
           <dl className="space-y-2 text-sm">
             {[
