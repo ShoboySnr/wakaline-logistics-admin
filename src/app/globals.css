@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: Tahoma, Verdana, ui-sans-serif, system-ui, sans-serif;
+  --color-primary: #c1666b;
+  --color-secondary: #f8f8f8;
+  --color-tertiary: #484848;
+}
+
+@variant dark (&:where(.dark, .dark *));
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #c1666b #f1f1f1;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #c1666b;
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #a85559;
+}
+
+.dark * {
+  scrollbar-color: #c1666b #2d2d2d;
+}
+
+.dark *::-webkit-scrollbar-track {
+  background: #2d2d2d;
+}
+
+.input {
+  @apply w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+}
+
+.label {
+  @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+}
+
+.card {
+  @apply bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all text-sm font-medium disabled:opacity-60;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all text-sm font-medium disabled:opacity-60;
+}
