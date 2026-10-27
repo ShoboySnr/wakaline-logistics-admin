@@ -60,6 +60,30 @@ export const request = async <T>(path: string, { query, body, headers, ...init }
   return data as T;
 };
 
+export const openFile = async (path: string, filename?: string) => {
+  const token = useStore.getState().token;
+  const response = await fetch(buildUrl(path), {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+
+  if (!response.ok) {
+    throw new ApiError(`Could not open file (${response.status})`, response.status);
+  }
+
+  const url = URL.createObjectURL(await response.blob());
+
+  if (filename) {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+  } else {
+    window.open(url, "_blank", "noopener");
+  }
+
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+};
+
 export const errorMessage = (error: unknown) => {
   if (error instanceof ApiError && error.errors) {
     return Object.values(error.errors).flat()[0] ?? error.message;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
@@ -98,7 +98,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function OrderForm({ order }: { order?: Order }) {
+export default function OrderForm({ order, defaultClientId }: { order?: Order; defaultClientId?: string }) {
   const router = useRouter();
   const notify = useNotify();
   const isEdit = !!order;
@@ -125,6 +125,14 @@ export default function OrderForm({ order }: { order?: Order }) {
       append({ client_stock_id: "", quantity: 1 });
     }
   }, [clientStocks, fields.length, append, isEdit]);
+
+  const prefilled = useRef(false);
+  useEffect(() => {
+    if (prefilled.current || isEdit || !defaultClientId || !options) return;
+    prefilled.current = true;
+    handleClientChange(defaultClientId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options, defaultClientId, isEdit]);
 
   const handleClientChange = (value: string) => {
     setValue("client_id", value);

@@ -184,3 +184,98 @@ export interface RemittanceData {
   stocks: { product_name: string; quantity: number }[];
   bank: { bank_name: string | null; account_name: string | null; account_number: string | null };
 }
+
+export interface ClientSummary {
+  id: number;
+  name: string;
+  company_name: string | null;
+  phone: string | null;
+  email: string | null;
+  pickup_address: string | null;
+  is_active: boolean;
+  dashboard_enabled: boolean;
+  api_enabled: boolean;
+  pod_remittance_enabled: boolean;
+  email_verified_at: string | null;
+  created_at: string;
+  orders_count?: number;
+}
+
+export interface ClientListResponse {
+  success: boolean;
+  data: ClientSummary[];
+  meta: PaginationMeta;
+  stats: { total: number; active: number; inactive: number; remittance: number };
+}
+
+export interface ClientStock {
+  id: number;
+  product_name: string;
+  quantity: number;
+}
+
+export interface InvoiceableOrder {
+  id: number;
+  order_number: string;
+  status: OrderStatus;
+  price: number;
+  date: string | null;
+  pickup_address: string;
+  delivery_address: string;
+  invoiced: boolean;
+}
+
+export interface ClientDetail extends ClientSummary {
+  contact_person: string | null;
+  alternate_phone: string | null;
+  alternate_email: string | null;
+  business_address: string | null;
+  city: string | null;
+  state: string | null;
+  business_type: string | null;
+  tax_id: string | null;
+  website: string | null;
+  payment_terms: string | null;
+  credit_limit: number | null;
+  notes: string | null;
+  special_instructions: string | null;
+  onboarded_date: string | null;
+  bank_name: string | null;
+  bank_account_name: string | null;
+  bank_account_number: string | null;
+  zone_rates: Record<string, number>;
+  last_login_at: string | null;
+  api_key: string | null;
+  api_key_generated_at: string | null;
+  api_last_used_at: string | null;
+  share_url: string | null;
+  stats: { total_orders: number; completed_orders: number; pending_orders: number; total_revenue: number };
+  credits: { available: number; total: number; used: number };
+  active_subscription: {
+    id: number;
+    plan_name: string | null;
+    credits_allocated: number;
+    credits_used: number;
+    starts_at: string | null;
+    expires_at: string | null;
+  } | null;
+  stocks: ClientStock[];
+  remittance: RemittanceData | null;
+  invoices: { id: number; invoice_number: string; invoice_date: string | null; orders_count: number; total: number }[];
+  invoiceable_orders: InvoiceableOrder[];
+  webhook: {
+    id: number;
+    is_active: boolean;
+    url: string | null;
+    last_synced_at: string | null;
+    last_error: string | null;
+    sync_count: number | null;
+    logs: { id: number; action: string; status: string; error_message: string | null; created_at: string }[];
+  } | null;
+}
+
+export interface ClientFormOptions {
+  zones: { key: string; label: string }[];
+  payment_terms: { value: string; label: string }[];
+  subscription_plans: { id: number; name: string; credits: number; price: number; validity_days: number | null }[];
+}
