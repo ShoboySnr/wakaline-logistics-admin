@@ -82,7 +82,6 @@ function OrdersContent() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Orders</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">Manage every delivery across Waka Line.</p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => setRemitOpen(true)} className="btn-secondary">
