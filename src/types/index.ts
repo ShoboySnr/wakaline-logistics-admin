@@ -427,6 +427,7 @@ export interface ExpenseStats {
   today_profit: number;
   week_profit: number;
   month_profit: number;
+  today_delivered: number;
 }
 
 export interface ExpenseListResponse {
@@ -729,4 +730,34 @@ export interface BiResult {
   pending?: BiPendingAction[];
   tools_used?: string[];
   message?: string;
+}
+
+export interface StatementLine { date: string | null; order_number?: string; customer_name?: string | null; category?: string; description?: string; vendor_name?: string | null; amount: number }
+export interface ExpenseStatement {
+  period: string;
+  start_date: string;
+  end_date: string;
+  generated_at: string;
+  revenue: StatementLine[];
+  expenses: StatementLine[];
+  total_revenue: number;
+  total_expenses: number;
+  profit: number;
+}
+
+export interface CreditHistoryEntry {
+  id: number;
+  reference: string | null;
+  type: string;
+  credits: number;
+  balance_after: number | null;
+  description: string | null;
+  processed_by: string | null;
+  created_at: string;
+}
+export interface CreditHistoryResponse {
+  success: boolean;
+  data: CreditHistoryEntry[];
+  meta: PaginationMeta;
+  client: { id: number; name: string; available_credits: number };
 }

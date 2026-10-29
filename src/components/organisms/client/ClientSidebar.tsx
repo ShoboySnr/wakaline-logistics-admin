@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Check, Copy, Loader2 } from "lucide-react";
 import { useClientAction, useClientFormOptions } from "@/src/api/clients";
 import { formatDate, formatNaira } from "@/src/helpers/format";
@@ -116,7 +117,7 @@ export default function ClientSidebar({ client }: { client: ClientDetail }) {
         </form>
       </Panel>
 
-      <Panel title="Delivery Credits">
+      <Panel title="Delivery Credits" actions={<Link href={`/dashboard/credits/clients/${client.id}/history`} className="text-sm text-primary hover:underline">View history</Link>}>
         <div className="grid grid-cols-3 gap-2 mb-4 text-center">
           {[
             ["Available", client.credits.available, "text-green-700 bg-green-50 dark:bg-green-900/20"],

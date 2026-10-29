@@ -218,6 +218,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                       </div>
                       <Link
+                        href="/dashboard/profile"
+                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => setProfileDropdownOpen(false)}
+                      >
+                        My Profile
+                      </Link>
+                      <Link
                         href="/dashboard/orders/new"
                         className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                         onClick={() => setProfileDropdownOpen(false)}

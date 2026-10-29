@@ -2,8 +2,8 @@
 
 import { Suspense, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Plus, Trash2, TrendingDown, TrendingUp, Wallet } from "lucide-react";
-import { ExpenseFilters, useCreateExpense, useDeleteExpense, useExpenseFormOptions, useExpenses } from "@/src/api/expenses";
+import { FileText, Plus, Printer, Trash2, TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import { ExpenseFilters, useCreateExpense, useDeleteExpense, useExpenseFormOptions, useExpenses, useStatement } from "@/src/api/expenses";
 import { formatDate, formatNaira, statusLabel } from "@/src/helpers/format";
 import { errorMessage } from "@/src/helpers/request";
 import useNotify from "@/src/hooks/useNotify";
@@ -108,6 +108,63 @@ function AddExpenseModal({ open, onClose }: { open: boolean; onClose: () => void
   );
 }
 
+const STATEMENT_PERIODS = [
+  { value: "today", label: "Today" },
+  { value: "yesterday", label: "Yesterday" },
+  { value: "this_week", label: "This Week" },
+  { value: "last_week", label: "Last Week" },
+  { value: "this_month", label: "This Month" },
+  { value: "last_month", label: "Last Month" },
+  { value: "all_time", label: "All Time" },
+];
+
+function StatementModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [period, setPeriod] = useState("this_month");
+  const { data, isFetching } = useStatement({ period }, open);
+
+  return (
+    <Modal open={open} onClose={onClose} title="Profit & Loss Statement" size="xl"
+      footer={
+        <div className="flex items-center justify-between gap-3">
+          <select className="input max-w-xs print:hidden" value={period} onChange={(e) => setPeriod(e.target.value)}>
+            {STATEMENT_PERIODS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+          </select>
+          <button onClick={() => window.print()} className="btn-primary print:hidden" disabled={!data}><Printer className="w-4 h-4" /> Print / Save PDF</button>
+        </div>
+      }>
+      <div className="p-6" id="statement-print">
+        {isFetching || !data ? <LoadingSpinner fullScreen={false} /> : (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Waka Line Logistics</h3>
+              <p className="text-sm text-gray-500">{data.period}</p>
+            </div>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="rounded-lg bg-green-50 dark:bg-green-900/20 p-3"><p className="text-xs text-gray-500">Revenue</p><p className="text-lg font-bold text-green-700 dark:text-green-400">{formatNaira(data.total_revenue)}</p></div>
+              <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-3"><p className="text-xs text-gray-500">Expenses</p><p className="text-lg font-bold text-red-700 dark:text-red-400">{formatNaira(data.total_expenses)}</p></div>
+              <div className="rounded-lg bg-primary/10 p-3"><p className="text-xs text-gray-500">Profit</p><p className="text-lg font-bold text-primary">{formatNaira(data.profit)}</p></div>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Revenue ({data.revenue.length})</h4>
+              <table className="min-w-full text-xs"><tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                {data.revenue.map((r, i) => (<tr key={i}><td className="py-1 text-gray-500">{r.date}</td><td className="py-1">{r.order_number}</td><td className="py-1">{r.customer_name}</td><td className="py-1 text-right font-medium">{formatNaira(r.amount)}</td></tr>))}
+                {data.revenue.length === 0 && <tr><td className="py-2 text-gray-400">No delivered orders in this period.</td></tr>}
+              </tbody></table>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Expenses ({data.expenses.length})</h4>
+              <table className="min-w-full text-xs"><tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                {data.expenses.map((e, i) => (<tr key={i}><td className="py-1 text-gray-500">{e.date}</td><td className="py-1">{e.category}</td><td className="py-1">{e.description}</td><td className="py-1 text-right font-medium">{formatNaira(e.amount)}</td></tr>))}
+                {data.expenses.length === 0 && <tr><td className="py-2 text-gray-400">No expenses in this period.</td></tr>}
+              </tbody></table>
+            </div>
+          </div>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
 function ExpensesContent() {
   const notify = useNotify();
   const [page, setPage] = useState(1);
@@ -115,6 +172,7 @@ function ExpensesContent() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [statementOpen, setStatementOpen] = useState(false);
 
   const filters: ExpenseFilters = { page, category: category || undefined, start_date: startDate || undefined, end_date: endDate || undefined };
   const { data, isLoading, isFetching } = useExpenses(filters);
@@ -139,17 +197,36 @@ function ExpensesContent() {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Expenses</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">Operating costs, and how they weigh against revenue.</p>
         </div>
-        <button onClick={() => setModalOpen(true)} className="btn-primary">
-          <Plus className="w-4 h-4" /> Add Expense
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => setStatementOpen(true)} className="btn-secondary">
+            <FileText className="w-4 h-4" /> Statement
+          </button>
+          <button onClick={() => setModalOpen(true)} className="btn-primary">
+            <Plus className="w-4 h-4" /> Add Expense
+          </button>
+        </div>
       </div>
 
       {data && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Total Expenses" value={formatNaira(data.stats.total_expenses)} icon={TrendingDown} gradient="from-rose-400 to-primary" />
-          <StatCard label="Total Revenue" value={formatNaira(data.stats.total_revenue)} icon={TrendingUp} gradient="from-emerald-500 to-green-600" />
-          <StatCard label="Total Profit" value={formatNaira(data.stats.total_profit)} icon={Wallet} gradient="from-blue-500 to-blue-600" />
-          <StatCard label="This Month Profit" value={formatNaira(data.stats.month_profit)} icon={Wallet} gradient="from-indigo-500 to-purple-600" />
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard label="Total Profit" value={formatNaira(data.stats.total_profit)} icon={Wallet} gradient="from-blue-500 to-blue-600" />
+            <StatCard label="Today's Profit" value={formatNaira(data.stats.today_profit)} icon={Wallet} gradient="from-indigo-500 to-purple-600" />
+            <StatCard label="This Week's Profit" value={formatNaira(data.stats.week_profit)} icon={Wallet} gradient="from-violet-500 to-fuchsia-600" />
+            <StatCard label="This Month's Profit" value={formatNaira(data.stats.month_profit)} icon={Wallet} gradient="from-sky-500 to-blue-600" />
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard label="Total Revenue" value={formatNaira(data.stats.total_revenue)} icon={TrendingUp} gradient="from-emerald-500 to-green-600" />
+            <StatCard label="Today's Revenue" value={formatNaira(data.stats.today_revenue)} icon={TrendingUp} gradient="from-green-500 to-emerald-600" />
+            <StatCard label="This Week's Revenue" value={formatNaira(data.stats.week_revenue)} icon={TrendingUp} gradient="from-teal-500 to-green-600" />
+            <StatCard label="This Month's Revenue" value={formatNaira(data.stats.month_revenue)} icon={TrendingUp} gradient="from-emerald-600 to-teal-700" />
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard label="Total Expenses" value={formatNaira(data.stats.total_expenses)} icon={TrendingDown} gradient="from-rose-400 to-primary" />
+            <StatCard label="Today's Expenses" value={formatNaira(data.stats.today_expenses)} icon={TrendingDown} gradient="from-red-400 to-rose-600" />
+            <StatCard label="This Week's Expenses" value={formatNaira(data.stats.week_expenses)} icon={TrendingDown} gradient="from-rose-500 to-pink-600" />
+            <StatCard label="This Month's Expenses" value={formatNaira(data.stats.month_expenses)} icon={TrendingDown} gradient="from-pink-500 to-rose-600" />
+          </div>
         </div>
       )}
 
@@ -214,6 +291,7 @@ function ExpensesContent() {
       </div>
 
       <AddExpenseModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <StatementModal open={statementOpen} onClose={() => setStatementOpen(false)} />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { request } from "../helpers/request";
 import { ApiResponse, CreditOverview, CreditPackage, CreditPlan, CreditSettingsData } from "../types";
 
@@ -49,3 +49,10 @@ export const useUpdateCreditSettings = () => {
   const invalidate = useCreditInvalidator(["settings"]);
   return useMutation({ mutationFn: (settings: Record<string, unknown>) => request<{ success: boolean; message: string }>("/credits/settings", { method: "PUT", body: { settings } }), onSuccess: invalidate });
 };
+
+export const useClientCreditHistory = (clientId: number | string, page: number) =>
+  useQuery({
+    queryKey: ["credits", "history", String(clientId), page],
+    queryFn: () => request<import("../types").CreditHistoryResponse>(`/credits/clients/${clientId}/history`, { query: { page } }),
+    placeholderData: keepPreviousData,
+  });

@@ -42,3 +42,10 @@ export const useDeleteExpense = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["expenses"] }),
   });
 };
+
+export const useStatement = (params: { period: string; start_date?: string; end_date?: string }, enabled: boolean) =>
+  useQuery({
+    queryKey: ["expenses", "statement", params],
+    queryFn: () => request<import("../types").ApiResponse<import("../types").ExpenseStatement>>("/expenses/statement", { query: { ...params } }).then((r) => r.data),
+    enabled,
+  });
