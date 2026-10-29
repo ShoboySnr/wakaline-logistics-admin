@@ -1,29 +1,13 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PaginationMeta } from "@/src/types";
 
-/**
- * Builds the page list with ellipses: always the first and last page, the
- * current page with one neighbour each side, and "…" standing in for any gap.
- * e.g. 1 … 4 5 6 … 20
- */
-function pageItems(current: number, last: number): (number | "…")[] {
-  const siblings = 1;
-  const pages = new Set<number>([1, last]);
-  for (let p = current - siblings; p <= current + siblings; p++) {
-    if (p >= 1 && p <= last) pages.add(p);
+
+function pageItems(last: number): (number | "…")[] {
+  if (last <= 6) {
+    return Array.from({ length: last }, (_, i) => i + 1);
   }
 
-  const sorted = [...pages].sort((a, b) => a - b);
-  const items: (number | "…")[] = [];
-  let previous = 0;
-
-  for (const page of sorted) {
-    if (page - previous > 1) items.push("…");
-    items.push(page);
-    previous = page;
-  }
-
-  return items;
+  return [1, 2, 3, "…", last - 2, last - 1, last];
 }
 
 export default function Pagination({ meta, onChange }: { meta: PaginationMeta; onChange: (page: number) => void }) {
@@ -31,7 +15,7 @@ export default function Pagination({ meta, onChange }: { meta: PaginationMeta; o
 
   const from = (meta.current_page - 1) * meta.per_page + 1;
   const to = Math.min(meta.current_page * meta.per_page, meta.total);
-  const items = pageItems(meta.current_page, meta.last_page);
+  const items = pageItems(meta.last_page);
 
   const arrow = "inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed";
 
