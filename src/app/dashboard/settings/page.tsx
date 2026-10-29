@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Plus, RefreshCw, Trash2 } from "lucide-react";
 import { useClearCache, useSettings, useUpdateBatchDiscount, useUpdateSettings } from "@/src/api/settings";
 import { statusLabel } from "@/src/helpers/format";
@@ -9,29 +9,29 @@ import useNotify from "@/src/hooks/useNotify";
 import DocumentTitle from "@/src/components/atoms/DocumentTitle";
 import LoadingSpinner from "@/src/components/atoms/LoadingSpinner";
 import Panel from "@/src/components/organisms/client/Panel";
-import { BatchDiscountTier } from "@/src/types";
+import { BatchDiscountTier, SettingsData } from "@/src/types";
 
 export default function SettingsPage() {
-  const notify = useNotify();
   const { data, isLoading } = useSettings();
+  if (isLoading || !data) return <LoadingSpinner />;
+  return <SettingsBody data={data} />;
+}
+
+function SettingsBody({ data }: { data: SettingsData }) {
+  const notify = useNotify();
   const updateSettings = useUpdateSettings();
   const updateBatchDiscount = useUpdateBatchDiscount();
   const clearCache = useClearCache();
 
-  const [values, setValues] = useState<Record<string, string>>({});
-  const [enabled, setEnabled] = useState(false);
-  const [tiers, setTiers] = useState<BatchDiscountTier[]>([]);
-
-  useEffect(() => {
-    if (!data) return;
+  const [values, setValues] = useState<Record<string, string>>(() => {
     const flat: Record<string, string> = {};
     data.groups.forEach((group) => group.settings.forEach((s) => { flat[s.key] = s.value == null ? "" : String(s.value); }));
-    setValues(flat);
-    setEnabled(data.batch_discount.enabled);
-    setTiers(data.batch_discount.tiers.length ? data.batch_discount.tiers : [{ min: 2, max: 6, percent: 10 }]);
-  }, [data]);
-
-  if (isLoading || !data) return <LoadingSpinner />;
+    return flat;
+  });
+  const [enabled, setEnabled] = useState(data.batch_discount.enabled);
+  const [tiers, setTiers] = useState<BatchDiscountTier[]>(
+    data.batch_discount.tiers.length ? data.batch_discount.tiers : [{ min: 2, max: 6, percent: 10 }],
+  );
 
   const saveSettings = async () => {
     try {

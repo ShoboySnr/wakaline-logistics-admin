@@ -60,3 +60,23 @@
 .btn-secondary {
   @apply inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all text-sm font-medium disabled:opacity-60;
 }
+
+.ai-answer { font-size: 0.875rem; line-height: 1.7; color: #374151; }
+.dark .ai-answer { color: #d1d5db; }
+.ai-answer p { margin-bottom: 0.6rem; }
+.ai-answer p:last-child { margin-bottom: 0; }
+.ai-answer ul { list-style: disc; padding-left: 1.25rem; margin-bottom: 0.6rem; }
+.ai-answer ol { list-style: decimal; padding-left: 1.25rem; margin-bottom: 0.6rem; }
+.ai-answer li { margin-bottom: 0.2rem; }
+.ai-answer strong { font-weight: 600; color: #111827; }
+.dark .ai-answer strong { color: #f3f4f6; }
+.ai-answer h1, .ai-answer h2, .ai-answer h3 { font-weight: 600; color: #111827; margin: 0.75rem 0 0.4rem; }
+.dark .ai-answer h1, .dark .ai-answer h2, .dark .ai-answer h3 { color: #f3f4f6; }
+.ai-answer table { width: 100%; border-collapse: collapse; margin-bottom: 0.6rem; font-size: 0.8125rem; }
+.ai-answer th, .ai-answer td { border: 1px solid #e5e7eb; padding: 0.35rem 0.55rem; text-align: left; }
+.dark .ai-answer th, .dark .ai-answer td { border-color: #4b5563; }
+.ai-answer th { background: #f9fafb; font-weight: 600; }
+.dark .ai-answer th { background: #374151; }
+.ai-answer code { background: #f3f4f6; padding: 0.1rem 0.35rem; border-radius: 0.25rem; font-family: ui-monospace, monospace; font-size: 0.8125rem; }
+.dark .ai-answer code { background: #1f2937; }
+.ai-answer a { color: #c1666b; text-decoration: underline; }

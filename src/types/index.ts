@@ -617,3 +617,116 @@ export interface TicketListResponse {
   meta: PaginationMeta;
   stats: { total: number; open: number; in_progress: number; resolved: number };
 }
+
+export interface CreditPlan {
+  id: number;
+  name: string;
+  description: string | null;
+  credits: number;
+  price: number;
+  billing_cycle: string;
+  validity_days: number | null;
+  features: string[];
+  is_active: boolean;
+  is_featured: boolean;
+  sort_order: number | null;
+}
+
+export interface CreditPackage {
+  id: number;
+  name: string;
+  description: string | null;
+  credits: number;
+  bonus_credits: number | null;
+  price: number;
+  validity_days: number | null;
+  is_active: boolean;
+  is_popular: boolean;
+  sort_order: number | null;
+}
+
+export interface CreditOverview {
+  stats: {
+    total_plans: number;
+    active_plans: number;
+    total_packages: number;
+    active_packages: number;
+    total_credits_sold: number;
+    total_credits_used: number;
+    total_revenue: number;
+    clients_with_credits: number;
+  };
+  recent_transactions: { id: number; reference: string | null; type: string; credits: number; amount_paid: number | null; client: string | null; created_at: string }[];
+  low_credit_clients: { client_id: number; client: string | null; available_credits: number }[];
+}
+
+export interface CreditSettingsData {
+  groups: SettingGroup[];
+}
+
+export interface Subscriber { id: number; email: string; created_at: string }
+
+export interface ContactMessageRow {
+  id: number;
+  first_name: string;
+  last_name: string | null;
+  email: string;
+  phone: string | null;
+  message: string;
+  created_at: string;
+}
+
+export interface WaitlistClient {
+  id: number;
+  name: string;
+  email: string;
+  phone: string | null;
+  company_name: string | null;
+  activation_sent: boolean;
+  created_at: string;
+}
+
+export interface SubscriberListResponse { success: boolean; data: Subscriber[]; meta: PaginationMeta }
+export interface ContactMessageListResponse { success: boolean; data: ContactMessageRow[]; meta: PaginationMeta }
+export interface WaitlistResponse { success: boolean; data: WaitlistClient[]; stats: { total: number } }
+
+export interface BiKpis {
+  month_label: string;
+  revenue: number;
+  expenses: number;
+  profit: number;
+  orders_this_month: number;
+  delivered_this_month: number;
+  pending_orders: number;
+  unassigned_orders: number;
+  active_riders: number;
+}
+
+export interface BiTranscriptEntry { role: string; text: string; html: string | null }
+
+export interface BiBootstrap {
+  configured: boolean;
+  conversation_id: string;
+  transcript: BiTranscriptEntry[];
+  kpis: BiKpis;
+}
+
+export interface BiPendingAction {
+  id: string;
+  name: string;
+  input: Record<string, unknown>;
+  summary: string;
+  reason: string | null;
+}
+
+export interface BiResult {
+  status: "answer" | "needs_confirmation" | "error";
+  conversation_id: string;
+  answer?: string;
+  answer_html?: string;
+  preamble?: string;
+  preamble_html?: string;
+  pending?: BiPendingAction[];
+  tools_used?: string[];
+  message?: string;
+}
