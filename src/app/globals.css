@@ -41,24 +41,26 @@
   background: #2d2d2d;
 }
 
-.input {
-  @apply w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
-}
+@layer components {
+  .input {
+    @apply w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+  }
 
-.label {
-  @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
-}
+  .label {
+    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+  }
 
-.card {
-  @apply bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700;
-}
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700;
+  }
 
-.btn-primary {
-  @apply inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all text-sm font-medium disabled:opacity-60;
-}
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all text-sm font-medium disabled:opacity-60;
+  }
 
-.btn-secondary {
-  @apply inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all text-sm font-medium disabled:opacity-60;
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all text-sm font-medium disabled:opacity-60;
+  }
 }
 
 .ai-answer { font-size: 0.875rem; line-height: 1.7; color: #374151; }
