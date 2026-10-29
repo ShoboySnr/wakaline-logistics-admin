@@ -7,7 +7,7 @@ import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { Loader2, Plus, X } from "lucide-react";
 import { useOrderFormOptions, useSaveOrder } from "@/src/api/orders";
 import { ApiError, errorMessage } from "@/src/helpers/request";
-import { statusLabel, toDateInput } from "@/src/helpers/format";
+import { statusLabel, toDateInput, toDateTimeInput } from "@/src/helpers/format";
 import useNotify from "@/src/hooks/useNotify";
 import LoadingSpinner from "../atoms/LoadingSpinner";
 import { Order } from "@/src/types";
@@ -81,8 +81,8 @@ const valuesFromOrder = (order?: Order): OrderFormValues => ({
   is_failed_delivery: order?.is_failed_delivery ?? false,
   status: order?.status ?? "pending",
   priority_level: order?.priority_level ?? "normal",
-  pickup_date: toDateInput(order?.pickup_date),
-  delivery_date: toDateInput(order?.delivery_date),
+  pickup_date: toDateTimeInput(order?.pickup_date),
+  delivery_date: toDateTimeInput(order?.delivery_date),
   notes: order?.notes ?? "",
   stock_items: (order?.stock_items ?? []).map((item) => ({
     client_stock_id: item.client_stock_id ? String(item.client_stock_id) : "",
@@ -388,11 +388,11 @@ export default function OrderForm({ order, defaultClientId }: { order?: Order; d
         </div>
         <div>
           <label className="label">Pickup Date</label>
-          <input type="date" className="input" {...register("pickup_date")} />
+          <input type="datetime-local" className="input" {...register("pickup_date")} />
         </div>
         <div>
           <label className="label">Drop-off Date</label>
-          <input type="date" className="input" {...register("delivery_date")} />
+          <input type="datetime-local" className="input" {...register("delivery_date")} />
         </div>
         <div className="md:col-span-2">
           <label className="label">Notes</label>

@@ -10,7 +10,7 @@ import { errorMessage } from "@/src/helpers/request";
 import useNotify from "@/src/hooks/useNotify";
 import DocumentTitle from "@/src/components/atoms/DocumentTitle";
 import LoadingSpinner from "@/src/components/atoms/LoadingSpinner";
-import StatusBadge from "@/src/components/atoms/StatusBadge";
+import OrderStatusSelect from "@/src/components/molecules/OrderStatusSelect";
 import Pagination from "@/src/components/molecules/Pagination";
 import RemitModal from "@/src/components/modals/RemitModal";
 
@@ -194,7 +194,7 @@ function OrdersContent() {
                     </td>
                     <td className="px-4 py-3 text-gray-600 dark:text-gray-300 whitespace-nowrap">{order.rider?.name ?? "—"}</td>
                     <td className="px-4 py-3 text-gray-900 dark:text-gray-100 whitespace-nowrap">{formatNaira(order.price)}</td>
-                    <td className="px-4 py-3"><StatusBadge status={order.status} /></td>
+                    <td className="px-4 py-3"><OrderStatusSelect order={order} /></td>
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{formatDate(order.created_at)}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 justify-end">

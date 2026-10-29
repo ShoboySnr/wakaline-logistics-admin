@@ -279,3 +279,341 @@ export interface ClientFormOptions {
   payment_terms: { value: string; label: string }[];
   subscription_plans: { id: number; name: string; credits: number; price: number; validity_days: number | null }[];
 }
+
+export type RiderStatus = "active" | "inactive" | "suspended";
+
+export interface RiderSummary {
+  id: number;
+  name: string;
+  email: string;
+  phone: string | null;
+  vehicle_type: string | null;
+  vehicle_number: string | null;
+  status: RiderStatus;
+  rating: number | null;
+  total_deliveries: number;
+  orders_count: number;
+  is_online: boolean;
+  photo: string | null;
+  created_at: string;
+}
+
+export interface RiderGuarantor {
+  index: number;
+  full_name: string | null;
+  dob: string | null;
+  nationality: string | null;
+  occupation: string | null;
+  nin: string | null;
+  residential_address: string | null;
+  phone: string | null;
+  alt_phone1: string | null;
+  alt_phone2: string | null;
+  work_address: string | null;
+  relationship: string | null;
+  years_known: number | null;
+}
+
+export interface RiderDetail extends RiderSummary {
+  age: number | null;
+  license_number: string | null;
+  address: string | null;
+  daily_code: string | null;
+  current_latitude: number | null;
+  current_longitude: number | null;
+  last_location_update: string | null;
+  share_url: string | null;
+  witness: { full_name: string | null; phone: string | null; address: string | null; date: string | null };
+  guarantors: RiderGuarantor[];
+  pending_orders: Order[];
+  files: Record<string, string | null>;
+  stats: { total_orders: number; delivered_orders: number; active_orders: number };
+}
+
+export interface RiderListResponse {
+  success: boolean;
+  data: RiderSummary[];
+  meta: PaginationMeta;
+  stats: { total: number; active: number; inactive: number; suspended: number };
+}
+
+export interface RiderFormOptions {
+  vehicle_types: { value: string; label: string }[];
+  statuses: { value: string; label: string }[];
+}
+
+export type BikeStatus = "active" | "maintenance" | "inactive";
+export type DocumentStatus = "valid" | "expiring" | "expired" | "none";
+
+export interface BikeDocument {
+  key: string;
+  label: string;
+  url: string | null;
+  expiry_date: string | null;
+  status: DocumentStatus;
+}
+
+export interface BikeSticker {
+  name: string | null;
+  serial_number: string | null;
+  expiry_date: string | null;
+  url: string | null;
+  status: string;
+}
+
+export interface BikeSummary {
+  id: number;
+  bike_number: string;
+  plate_number: string;
+  brand: string | null;
+  model: string | null;
+  color: string | null;
+  year: number | null;
+  status: BikeStatus;
+  assigned_rider: { id: number; name: string; phone: string | null } | null;
+  has_expiring_documents: boolean;
+  has_expired_documents: boolean;
+  next_maintenance_date: string | null;
+  created_at: string;
+}
+
+export interface BikeDetail extends BikeSummary {
+  engine_number: string | null;
+  chassis_number: string | null;
+  last_maintenance_date: string | null;
+  assignment_date: string | null;
+  notes: string | null;
+  documents: BikeDocument[];
+  stickers: BikeSticker[];
+}
+
+export interface BikeListResponse {
+  success: boolean;
+  data: BikeSummary[];
+  meta: PaginationMeta;
+  stats: { total: number; active: number; maintenance: number; inactive: number; assigned: number; expiring_docs: number; expired_docs: number };
+}
+
+export interface BikeFormOptions {
+  statuses: { value: string; label: string }[];
+  documents: { key: string; label: string }[];
+  riders: { id: number; name: string; phone: string | null }[];
+}
+
+export interface Expense {
+  id: number;
+  category: string;
+  description: string;
+  amount: number;
+  expense_date: string | null;
+  payment_method: string | null;
+  receipt_number: string | null;
+  vendor_name: string | null;
+  notes: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface ExpenseStats {
+  total_expenses: number;
+  today_expenses: number;
+  week_expenses: number;
+  month_expenses: number;
+  total_revenue: number;
+  today_revenue: number;
+  week_revenue: number;
+  month_revenue: number;
+  total_profit: number;
+  today_profit: number;
+  week_profit: number;
+  month_profit: number;
+}
+
+export interface ExpenseListResponse {
+  success: boolean;
+  data: Expense[];
+  meta: PaginationMeta;
+  stats: ExpenseStats;
+}
+
+export interface ExpenseFormOptions {
+  categories: string[];
+  payment_methods: string[];
+}
+
+export type TransactionStatus = "pending" | "completed" | "failed" | "reversed";
+
+export interface TransactionSummary {
+  id: number;
+  transaction_reference: string | null;
+  payment_reference: string | null;
+  type: string;
+  status: TransactionStatus;
+  credits: number;
+  amount_paid: number | null;
+  description: string | null;
+  client: { id: number; name: string; company_name: string | null } | null;
+  created_at: string;
+}
+
+export interface TransactionDetail extends TransactionSummary {
+  payment_method: string | null;
+  balance_before: number | null;
+  balance_after: number | null;
+  subscription_plan: string | null;
+  credit_package: string | null;
+  order_number: string | null;
+  metadata: Record<string, unknown> | null;
+  processed_by: number | null;
+  updated_at: string;
+}
+
+export interface TransactionListResponse {
+  success: boolean;
+  data: TransactionSummary[];
+  meta: PaginationMeta;
+  stats: { total: number; pending: number; completed: number; failed: number; total_amount: number };
+}
+
+export interface AdminUserRow {
+  id: number;
+  name: string;
+  email: string;
+  phone: string | null;
+  is_admin: boolean;
+  is_self: boolean;
+  created_at: string;
+}
+
+export interface UserListResponse {
+  success: boolean;
+  data: AdminUserRow[];
+  meta: PaginationMeta;
+  stats: { total: number; admins: number; staff: number };
+}
+
+export type JobApplicationStatus = "pending" | "reviewing" | "shortlisted" | "rejected" | "hired";
+
+export interface JobApplicationGuarantor {
+  index: number;
+  full_name: string | null;
+  phone: string | null;
+  relationship: string | null;
+  occupation: string | null;
+  residential_address: string | null;
+}
+
+export interface JobApplicationSummary {
+  id: number;
+  job_type: string;
+  formatted_job_type: string;
+  full_name: string;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  age: number | null;
+  experience_years: string | null;
+  status: JobApplicationStatus;
+  is_partner: boolean;
+  created_at: string;
+}
+
+export interface JobApplicationDetail extends JobApplicationSummary {
+  license_number: string | null;
+  previous_work: string | null;
+  availability: string | null;
+  why_join: string | null;
+  owns_vehicle: boolean | null;
+  vehicle_type: string | null;
+  vehicle_registration: string | null;
+  coverage_areas: string | null;
+  has_smartphone: boolean | null;
+  guarantors: JobApplicationGuarantor[];
+  admin_notes: string | null;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  updated_at: string;
+}
+
+export interface JobApplicationListResponse {
+  success: boolean;
+  data: JobApplicationSummary[];
+  meta: PaginationMeta;
+  stats: { pending: number; reviewing: number; shortlisted: number; rejected: number; hired: number };
+}
+
+export interface SettingItem {
+  key: string;
+  value: string | number | boolean | null;
+  type: string;
+  description: string | null;
+}
+
+export interface SettingGroup {
+  group: string;
+  settings: SettingItem[];
+}
+
+export interface BatchDiscountTier {
+  min: number;
+  max: number | null;
+  percent: number;
+}
+
+export interface SettingsData {
+  groups: SettingGroup[];
+  batch_discount: { enabled: boolean; tiers: BatchDiscountTier[] };
+}
+
+export interface Faq {
+  id: number;
+  question: string;
+  answer: string;
+  category: string;
+  sort_order: number | null;
+  is_active: boolean;
+}
+
+export type TicketStatus = "open" | "in_progress" | "resolved" | "closed";
+
+export interface TicketSummary {
+  id: number;
+  ticket_number: string;
+  subject: string;
+  status: TicketStatus;
+  priority: string | null;
+  client: { id: number; name: string } | null;
+  messages_count: number;
+  unread_count: number;
+  created_at: string;
+}
+
+export interface TicketMessage {
+  id: number;
+  sender_type: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface TicketDetail {
+  id: number;
+  ticket_number: string;
+  subject: string;
+  status: TicketStatus;
+  priority: string | null;
+  client: { id: number; name: string; email: string | null } | null;
+  assigned_to: number | null;
+  assigned_admin: string | null;
+  resolved_at: string | null;
+  created_at: string;
+  messages: TicketMessage[];
+  admins: { id: number; name: string }[];
+}
+
+export interface TicketListResponse {
+  success: boolean;
+  data: TicketSummary[];
+  meta: PaginationMeta;
+  stats: { total: number; open: number; in_progress: number; resolved: number };
+}
