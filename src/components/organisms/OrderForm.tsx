@@ -7,7 +7,7 @@ import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { Loader2, Plus, X } from "lucide-react";
 import { useOrderFormOptions, useSaveOrder } from "@/src/api/orders";
 import { ApiError, errorMessage } from "@/src/helpers/request";
-import { statusLabel, toDateInput, toDateTimeInput } from "@/src/helpers/format";
+import { formatDate, statusLabel, toDateTimeInput } from "@/src/helpers/format";
 import useNotify from "@/src/hooks/useNotify";
 import LoadingSpinner from "../atoms/LoadingSpinner";
 import { Order } from "@/src/types";
@@ -77,7 +77,7 @@ const valuesFromOrder = (order?: Order): OrderFormValues => ({
   price: order ? String(order.price) : "",
   payment_method: order?.payment_method ?? "",
   amount_received: order?.amount_received !== null && order?.amount_received !== undefined ? String(order.amount_received) : "",
-  mark_remitted: false,
+  mark_remitted: !!order?.remitted_at,
   is_failed_delivery: order?.is_failed_delivery ?? false,
   status: order?.status ?? "pending",
   priority_level: order?.priority_level ?? "normal",
@@ -156,7 +156,7 @@ export default function OrderForm({ order, defaultClientId }: { order?: Order; d
     });
     if (paymentMethod !== "cash") form.set("amount_received", "");
     form.append("is_failed_delivery", is_failed_delivery ? "1" : "0");
-    if (mark_remitted) form.append("mark_remitted", "1");
+    form.append("mark_remitted", mark_remitted ? "1" : "0");
 
     stock_items
       .filter((item) => item.client_stock_id)
@@ -353,13 +353,17 @@ export default function OrderForm({ order, defaultClientId }: { order?: Order; d
             <p className="mt-1 text-xs text-gray-500">Cash collected from the customer on delivery</p>
           </div>
         )}
-        {!isEdit && paymentMethod === "cash" && Number(amountReceived) > 0 && (
+        {paymentMethod === "cash" && Number(amountReceived) > 0 && (
           <div className="md:col-span-2 rounded-lg p-4 bg-primary/5 border border-primary/40">
             <label className="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" className="w-4 h-4 accent-primary" {...register("mark_remitted")} />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Mark as Remitted</span>
             </label>
-            <p className="mt-1 ml-7 text-xs text-gray-500">Check this if the cash has already been handed over.</p>
+            <p className="mt-1 ml-7 text-xs text-gray-500">
+              {order?.remitted_at
+                ? `Remitted on ${formatDate(order.remitted_at, true)}. Uncheck to reverse.`
+                : "Check this if the cash has already been handed over."}
+            </p>
           </div>
         )}
         <div className="md:col-span-2 rounded-lg p-4 border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
