@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useStore } from "@/src/store";
 import useHydrated from "@/src/hooks/useHydrated";
 import AdminLayout from "@/src/components/layouts/AdminLayout";
+import LoadingSpinner from "@/src/components/atoms/LoadingSpinner";
 
 export default function DashboardRootLayout({ children }: { children: React.ReactNode }) {
   const hydrated = useHydrated();
@@ -19,8 +20,8 @@ export default function DashboardRootLayout({ children }: { children: React.Reac
 
   if (!hydrated || !isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <LoadingSpinner fullScreen={false} />
       </div>
     );
   }
