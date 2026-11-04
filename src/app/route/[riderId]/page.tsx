@@ -227,7 +227,7 @@ export default function PublicRoutePage({ params }: { params: Promise<{ riderId:
                   <RouteMap stops={stops} start={data?.start ?? null} riderLocation={liveLocation} className="h-64 w-full" />
                 ) : null}
 
-                <RouteStopList stops={stops} busy={busy} onStatus={runStatus} onCollect={runCollect} />
+                <RouteStopList stops={stops} busy={busy} onStatus={runStatus} onCollect={runCollect} allowFail={false} />
               </>
             )}
           </>

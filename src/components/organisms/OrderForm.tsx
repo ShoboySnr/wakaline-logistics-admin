@@ -469,7 +469,6 @@ export default function OrderForm({ order, defaultClientId }: { order?: Order; d
         <div>
           <label className="label">Delivery Deadline</label>
           <input type="datetime-local" className="input" {...register("delivery_deadline")} />
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Latest time this must arrive. Used to prioritise the rider&apos;s route.</p>
         </div>
         <div className="md:col-span-2">
           <label className="label">Notes</label>

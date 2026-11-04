@@ -94,4 +94,5 @@ export const useRiderRoute = (id: number | string, coords?: { lat: number; lng: 
         query: coords ? { lat: coords.lat, lng: coords.lng } : {},
       }).then((r) => r.data),
     enabled: !!id,
+    refetchInterval: 30_000,
   });

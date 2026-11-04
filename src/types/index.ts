@@ -781,6 +781,7 @@ export interface RouteStop {
   order_id: number;
   order_number: string;
   status: OrderStatus;
+  client_name: string | null;
   address: string;
   lat: number;
   lng: number;

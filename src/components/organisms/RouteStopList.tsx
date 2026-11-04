@@ -26,7 +26,7 @@ const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`;
 const waHref = (phone: string) => `https://wa.me/${phone.replace(/[^\d]/g, "").replace(/^0/, "234")}`;
 const navHref = (lat: number, lng: number) => `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
 
-function statusActions(stop: RouteStop): { label: string; status: OrderStatus; klass: string }[] {
+function statusActions(stop: RouteStop, allowFail: boolean): { label: string; status: OrderStatus; klass: string }[] {
   if (stop.type === "pickup") {
     return [{ label: "Mark picked up", status: "picked_up", klass: "btn-primary" }];
   }
@@ -35,7 +35,9 @@ function statusActions(stop: RouteStop): { label: string; status: OrderStatus; k
     actions.push({ label: "Start delivery", status: "in_transit", klass: "btn-secondary" });
   }
   actions.push({ label: "Mark delivered", status: "delivered", klass: "btn-primary" });
-  actions.push({ label: "Mark failed", status: "failed", klass: "btn-danger" });
+  if (allowFail) {
+    actions.push({ label: "Mark failed", status: "failed", klass: "btn-danger" });
+  }
   return actions;
 }
 
@@ -45,9 +47,10 @@ interface RouteStopListProps {
   onStatus: (stop: RouteStop, status: OrderStatus) => void;
   onCollect: (stop: RouteStop) => void;
   onConfirm?: (stop: RouteStop) => void;
+  allowFail?: boolean;
 }
 
-export default function RouteStopList({ stops, busy, onStatus, onCollect, onConfirm }: RouteStopListProps) {
+export default function RouteStopList({ stops, busy, onStatus, onCollect, onConfirm, allowFail = true }: RouteStopListProps) {
   return (
     <ol className="space-y-3">
       {stops.map((stop) => {
@@ -65,6 +68,9 @@ export default function RouteStopList({ stops, busy, onStatus, onCollect, onConf
                     {isPickup ? "Pickup" : "Drop-off"}
                   </span>
                   <span className="text-sm font-semibold text-gray-900 dark:text-white">{stop.order_number}</span>
+                  {stop.client_name ? (
+                    <span className="text-xs text-gray-500 dark:text-gray-400">· {stop.client_name}</span>
+                  ) : null}
                   {PRIORITY_BADGE[stop.priority_level] ? (
                     <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-full ${PRIORITY_BADGE[stop.priority_level]}`}>
                       {stop.priority_level}
@@ -120,7 +126,7 @@ export default function RouteStopList({ stops, busy, onStatus, onCollect, onConf
                 ) : null}
 
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {statusActions(stop).map((a) => (
+                  {statusActions(stop, allowFail).map((a) => (
                     <button
                       key={a.status}
                       onClick={() => onStatus(stop, a.status)}
