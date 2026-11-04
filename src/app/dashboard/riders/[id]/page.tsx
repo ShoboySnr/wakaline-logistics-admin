@@ -115,6 +115,9 @@ export default function RiderDetailPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link href={`/dashboard/riders/${rider.id}/route`} className="btn-primary">
+            <MapPin className="w-4 h-4" /> Optimized Route
+          </Link>
           <Link href={`/dashboard/riders/${rider.id}/edit`} className="btn-secondary">
             <Pencil className="w-4 h-4" /> Edit
           </Link>

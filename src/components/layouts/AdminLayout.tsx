@@ -41,6 +41,7 @@ interface NavigationItem {
 const navigation: NavigationItem[] = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Orders", href: "/dashboard/orders", icon: Package },
+  { name: "Payments", href: "/dashboard/payments", icon: Wallet },
   { name: "Clients", href: "/dashboard/clients", icon: Users },
   { name: "Riders", href: "/dashboard/riders", icon: Bike },
   { name: "Bikes", href: "/dashboard/bikes", icon: Bike },

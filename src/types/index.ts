@@ -20,7 +20,17 @@ export interface PaginationMeta {
   total: number;
 }
 
-export type OrderStatus = "pending" | "confirmed" | "in_transit" | "delivered" | "cancelled";
+export type OrderStatus =
+  | "pending"
+  | "confirmed"
+  | "accepted"
+  | "arrived_at_pickup"
+  | "picked_up"
+  | "in_transit"
+  | "arrived_at_dropoff"
+  | "delivered"
+  | "failed"
+  | "cancelled";
 
 export interface OrderStockItem {
   id: number;
@@ -64,12 +74,15 @@ export interface Order {
   amount_received: number | null;
   to_remit: number | null;
   remitted_at: string | null;
+  payment_collected_at: string | null;
+  payment_confirmed_at: string | null;
   is_failed_delivery: boolean;
   notes: string | null;
   package_description: string | null;
   package_quantity: number | null;
   pickup_date: string | null;
   delivery_date: string | null;
+  delivery_deadline: string | null;
   created_at: string;
   updated_at: string;
   rider?: { id: number; name: string; phone: string | null } | null;
@@ -760,4 +773,46 @@ export interface CreditHistoryResponse {
   data: CreditHistoryEntry[];
   meta: PaginationMeta;
   client: { id: number; name: string; available_credits: number };
+}
+
+export interface RouteStop {
+  seq: number;
+  type: "pickup" | "dropoff";
+  order_id: number;
+  order_number: string;
+  status: OrderStatus;
+  address: string;
+  lat: number;
+  lng: number;
+  contact: string | null;
+  phone: string | null;
+  item_description: string | null;
+  quantity: number | null;
+  price: number | null;
+  payment_method: string | null;
+  payment_collected_at: string | null;
+  payment_confirmed_at: string | null;
+  priority_level: string;
+  leg_km: number;
+  leg_minutes: number;
+  cumulative_minutes: number;
+  eta: string;
+  eta_label: string;
+  deadline: string | null;
+  deadline_label?: string;
+  deadline_status: "none" | "on_time" | "at_risk" | "late";
+}
+
+export interface RiderLocation {
+  current_latitude: number | null;
+  current_longitude: number | null;
+  last_location_update: string | null;
+}
+
+export interface OptimizedRoute {
+  start: { lat: number; lng: number; label: string; source: string } | null;
+  stops: RouteStop[];
+  summary: { stops: number; total_km: number; total_minutes: number; at_risk: number; late: number };
+  maps_url?: string;
+  generated_at: string;
 }

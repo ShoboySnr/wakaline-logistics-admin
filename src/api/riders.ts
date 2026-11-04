@@ -76,3 +76,22 @@ export const useRiderAction = (id: number | string) => {
     }),
   };
 };
+
+export const useRiderLocation = (id: number | string, enabled = true) =>
+  useQuery({
+    queryKey: ["riders", "location", String(id)],
+    queryFn: () =>
+      request<ApiResponse<import("../types").RiderLocation>>(`/riders/${id}/location`).then((r) => r.data),
+    enabled: !!id && enabled,
+    refetchInterval: 45_000,
+  });
+
+export const useRiderRoute = (id: number | string, coords?: { lat: number; lng: number } | null) =>
+  useQuery({
+    queryKey: ["riders", "route", String(id), coords ?? null],
+    queryFn: () =>
+      request<import("../types").ApiResponse<import("../types").OptimizedRoute>>(`/riders/${id}/route`, {
+        query: coords ? { lat: coords.lat, lng: coords.lng } : {},
+      }).then((r) => r.data),
+    enabled: !!id,
+  });

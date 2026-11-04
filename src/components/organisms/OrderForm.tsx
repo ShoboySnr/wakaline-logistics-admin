@@ -43,6 +43,7 @@ interface OrderFormValues {
   priority_level: string;
   pickup_date: string;
   delivery_date: string;
+  delivery_deadline: string;
   notes: string;
   stock_items: StockRow[];
 }
@@ -84,6 +85,7 @@ const valuesFromOrder = (order?: Order): OrderFormValues => ({
   priority_level: order?.priority_level ?? "normal",
   pickup_date: toDateTimeInput(order?.pickup_date),
   delivery_date: toDateTimeInput(order?.delivery_date),
+  delivery_deadline: toDateTimeInput(order?.delivery_deadline),
   notes: order?.notes ?? "",
   stock_items: (order?.stock_items ?? []).map((item) => ({
     client_stock_id: item.client_stock_id ? String(item.client_stock_id) : "",
@@ -463,6 +465,11 @@ export default function OrderForm({ order, defaultClientId }: { order?: Order; d
         <div>
           <label className="label">Drop-off Date</label>
           <input type="datetime-local" className="input" {...register("delivery_date")} />
+        </div>
+        <div>
+          <label className="label">Delivery Deadline</label>
+          <input type="datetime-local" className="input" {...register("delivery_deadline")} />
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Latest time this must arrive. Used to prioritise the rider&apos;s route.</p>
         </div>
         <div className="md:col-span-2">
           <label className="label">Notes</label>

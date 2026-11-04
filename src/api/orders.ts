@@ -1,6 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { request } from "../helpers/request";
-import { ApiResponse, Order, OrderFormOptions, OrderListResponse, OrderStatus, RemittanceData } from "../types";
+import { ApiResponse, Order, OrderFormOptions, OrderListResponse, OrderStatus, PaginationMeta, RemittanceData } from "../types";
 
 export interface OrderFilters {
   page?: number;
@@ -67,6 +67,15 @@ export const useUpdateOrderStatus = (id: number | string) => {
   });
 };
 
+export const useSetOrderStatus = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status }: { id: number; status: OrderStatus }) =>
+      request<ApiResponse<Order>>(`/orders/${id}/status`, { method: "PATCH", body: { status } }).then((res) => res.data),
+    onSuccess: () => invalidateRouteAndOrders(queryClient),
+  });
+};
+
 export const useAssignRider = (id: number | string) => {
   const invalidate = useInvalidateOrders();
   return useMutation({
@@ -107,4 +116,38 @@ export const useCalculatePrice = () =>
   useMutation({
     mutationFn: (body: { pickup_address: string; dropoff_address: string }) =>
       request<ApiResponse<PriceCalculation>>("/orders/calculate-price", { method: "POST", body }).then((r) => r.data),
+  });
+
+const invalidateRouteAndOrders = (queryClient: ReturnType<typeof useQueryClient>) => {
+  queryClient.invalidateQueries({ queryKey: ["orders"] });
+  queryClient.invalidateQueries({ queryKey: ["riders", "route"] });
+  queryClient.invalidateQueries({ queryKey: ["orders", "payment-queue"] });
+};
+
+export const useMarkPaymentCollected = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      request<ApiResponse<Order>>(`/orders/${id}/payment-collected`, { method: "PATCH" }).then((r) => r.data),
+    onSuccess: () => invalidateRouteAndOrders(queryClient),
+  });
+};
+
+export const useConfirmPayment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      request<ApiResponse<Order>>(`/orders/${id}/payment-confirmed`, { method: "PATCH" }).then((r) => r.data),
+    onSuccess: () => invalidateRouteAndOrders(queryClient),
+  });
+};
+
+export const usePaymentQueue = () =>
+  useQuery({
+    queryKey: ["orders", "payment-queue"],
+    queryFn: () =>
+      request<{ success: boolean; data: Order[]; meta: PaginationMeta; stats: { awaiting_confirmation: number } }>(
+        "/orders/payment-queue"
+      ),
+    refetchInterval: 60_000,
   });

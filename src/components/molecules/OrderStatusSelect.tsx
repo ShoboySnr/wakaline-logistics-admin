@@ -10,16 +10,26 @@ const STATUS_OPTIONS: OrderStatus[] = ["pending", "confirmed", "in_transit", "de
 const STATUS_PILL: Record<OrderStatus, string> = {
   pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300",
   confirmed: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
+  accepted: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
+  arrived_at_pickup: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300",
+  picked_up: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300",
   in_transit: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
+  arrived_at_dropoff: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
   delivered: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
+  failed: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
   cancelled: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
 };
 
 const LABELS: Record<OrderStatus, string> = {
   pending: "Pending",
   confirmed: "Confirmed",
+  accepted: "Accepted",
+  arrived_at_pickup: "At Pickup",
+  picked_up: "Picked Up",
   in_transit: "In Transit",
+  arrived_at_dropoff: "At Drop-off",
   delivered: "Delivered",
+  failed: "Failed",
   cancelled: "Cancelled",
 };
 
