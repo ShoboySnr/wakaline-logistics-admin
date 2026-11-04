@@ -23,3 +23,6 @@ export const toDateTimeInput = (value: string | null | undefined) => {
   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
   return local.toISOString().slice(0, 16);
 };
+
+export const jitsiRoomUrl = (riderId: string | number) =>
+  `https://meet.jit.si/WakaLineLogistics-Rider-${riderId}`;

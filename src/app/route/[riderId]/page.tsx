@@ -3,7 +3,7 @@
 import { use, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, ExternalLink, MapPin, MessageCircle, Navigation, Package, Phone, RefreshCw } from "lucide-react";
+import { AlertTriangle, ExternalLink, MapPin, MessageCircle, Navigation, Package, Phone, RefreshCw, Video } from "lucide-react";
 import {
   fetchOptimizedRoute,
   markRouteCollected,
@@ -14,6 +14,7 @@ import {
 import { useConfirmPayment } from "@/src/api/orders";
 import { useRider } from "@/src/api/riders";
 import { useStore } from "@/src/store";
+import { jitsiRoomUrl } from "@/src/helpers/format";
 import useNotify from "@/src/hooks/useNotify";
 import DocumentTitle from "@/src/components/atoms/DocumentTitle";
 import LoadingSpinner from "@/src/components/atoms/LoadingSpinner";
@@ -222,22 +223,27 @@ export default function PublicRoutePage({ params }: { params: Promise<{ riderId:
             </div>
             {data?.start ? <p className="text-sm text-gray-500 mt-0.5">Starts from {data.start.label}</p> : null}
           </div>
-          {isAdmin ? (
-            rider?.phone ? (
-              <div className="flex items-center gap-2 shrink-0">
-                <a href={telHref(rider.phone)} className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-medium text-gray-700">
-                  <Phone className="w-4 h-4" /> Call rider
-                </a>
-                <a href={waHref(rider.phone)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-lg bg-green-100 px-2.5 py-1.5 text-xs font-medium text-green-700">
-                  <MessageCircle className="w-4 h-4" /> WhatsApp
-                </a>
-              </div>
-            ) : null
-          ) : (
-            <button onClick={shareLocation} className="btn-secondary !px-3 !py-1.5 !text-xs">
-              <Navigation className="w-4 h-4" /> My location
-            </button>
-          )}
+          <div className="flex items-center gap-2 shrink-0">
+            <a href={jitsiRoomUrl(riderId)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-primary">
+              <Video className="w-4 h-4" /> Join call
+            </a>
+            {isAdmin ? (
+              rider?.phone ? (
+                <>
+                  <a href={telHref(rider.phone)} className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-medium text-gray-700">
+                    <Phone className="w-4 h-4" /> Call rider
+                  </a>
+                  <a href={waHref(rider.phone)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-lg bg-green-100 px-2.5 py-1.5 text-xs font-medium text-green-700">
+                    <MessageCircle className="w-4 h-4" /> WhatsApp
+                  </a>
+                </>
+              ) : null
+            ) : (
+              <button onClick={shareLocation} className="btn-secondary !px-3 !py-1.5 !text-xs">
+                <Navigation className="w-4 h-4" /> My location
+              </button>
+            )}
+          </div>
         </div>
 
         {isLoading && !cached ? (
@@ -287,6 +293,7 @@ export default function PublicRoutePage({ params }: { params: Promise<{ riderId:
                   onCollect={runCollect}
                   onConfirm={isAdmin ? runConfirm : undefined}
                   allowFail={isAdmin}
+                  showNavigate={false}
                 />
               </>
             )}

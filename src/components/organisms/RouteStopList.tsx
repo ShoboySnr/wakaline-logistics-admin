@@ -48,9 +48,10 @@ interface RouteStopListProps {
   onCollect: (stop: RouteStop) => void;
   onConfirm?: (stop: RouteStop) => void;
   allowFail?: boolean;
+  showNavigate?: boolean;
 }
 
-export default function RouteStopList({ stops, busy, onStatus, onCollect, onConfirm, allowFail = true }: RouteStopListProps) {
+export default function RouteStopList({ stops, busy, onStatus, onCollect, onConfirm, allowFail = true, showNavigate = true }: RouteStopListProps) {
   return (
     <ol className="space-y-3">
       {stops.map((stop) => {
@@ -119,9 +120,11 @@ export default function RouteStopList({ stops, busy, onStatus, onCollect, onConf
                         </a>
                       </>
                     ) : null}
-                    <a href={navHref(stop.lat, stop.lng)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                      <Navigation className="w-3.5 h-3.5" /> Navigate
-                    </a>
+                    {showNavigate ? (
+                      <a href={navHref(stop.lat, stop.lng)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+                        <Navigation className="w-3.5 h-3.5" /> Navigate
+                      </a>
+                    ) : null}
                   </div>
                 ) : null}
 
