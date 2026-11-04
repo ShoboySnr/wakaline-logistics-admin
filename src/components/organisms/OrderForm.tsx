@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
-import { Loader2, Plus, X } from "lucide-react";
-import { useOrderFormOptions, useSaveOrder } from "@/src/api/orders";
+import { Calculator, Loader2, Plus, X } from "lucide-react";
+import { useCalculatePrice, useOrderFormOptions, useSaveOrder } from "@/src/api/orders";
 import { ApiError, errorMessage } from "@/src/helpers/request";
 import { formatDate, statusLabel, toDateTimeInput } from "@/src/helpers/format";
 import useNotify from "@/src/hooks/useNotify";
 import LoadingSpinner from "../atoms/LoadingSpinner";
+import AddressAutocomplete from "../atoms/AddressAutocomplete";
 import { Order } from "@/src/types";
 
 interface StockRow {
@@ -116,7 +117,26 @@ export default function OrderForm({ order, defaultClientId }: { order?: Order; d
 
   const { fields, append, remove, replace } = useFieldArray({ control, name: "stock_items" });
 
-  const [clientId, paymentMethod, amountReceived] = useWatch({ control, name: ["client_id", "payment_method", "amount_received"] });
+  const [clientId, paymentMethod, amountReceived, pickupAddress, deliveryAddress] = useWatch({
+    control,
+    name: ["client_id", "payment_method", "amount_received", "pickup_address", "delivery_address"],
+  });
+
+  const calcPrice = useCalculatePrice();
+  const [priceInfo, setPriceInfo] = useState<{ distance_km: number; pickup_zone: string | null; delivery_zone: string | null } | null>(null);
+
+  const runCalc = async () => {
+    const pickup = (pickupAddress ?? "").trim();
+    const dropoff = (deliveryAddress ?? "").trim();
+    if (!pickup || !dropoff) return;
+    try {
+      const result = await calcPrice.mutateAsync({ pickup_address: pickup, dropoff_address: dropoff });
+      setValue("price", String(result.delivery_fee), { shouldValidate: true });
+      setPriceInfo({ distance_km: result.distance_km, pickup_zone: result.pickup_zone, delivery_zone: result.delivery_zone });
+    } catch (e) {
+      notify.error(errorMessage(e));
+    }
+  };
   const clientStocks = useMemo(() => (clientId ? options?.stock_clients[clientId] ?? [] : []), [clientId, options]);
   const stockLocked = order?.stock_items?.some((item) => item.deducted_at) ?? false;
 
@@ -246,15 +266,28 @@ export default function OrderForm({ order, defaultClientId }: { order?: Order; d
         </div>
         <div className="md:col-span-2">
           <label className="label">Pickup Address <span className="text-red-500">*</span></label>
-          <textarea rows={2} className="input" {...register("pickup_address", { required: "Pickup address is required" })} />
+          <input type="hidden" {...register("pickup_address", { required: "Pickup address is required" })} />
+          <AddressAutocomplete
+            value={pickupAddress ?? ""}
+            onChange={(v) => setValue("pickup_address", v, { shouldValidate: true })}
+            onResolved={runCalc}
+            placeholder="Start typing an address in Nigeria…"
+          />
           {fieldError("pickup_address")}
         </div>
 
         <SectionTitle>Drop-off Information</SectionTitle>
         <div className="md:col-span-2">
           <label className="label">Drop-off Address <span className="text-red-500">*</span></label>
-          <textarea rows={2} className="input" {...register("delivery_address", { required: "Drop-off address is required" })} />
+          <input type="hidden" {...register("delivery_address", { required: "Drop-off address is required" })} />
+          <AddressAutocomplete
+            value={deliveryAddress ?? ""}
+            onChange={(v) => setValue("delivery_address", v, { shouldValidate: true })}
+            onResolved={runCalc}
+            placeholder="Start typing an address in Nigeria…"
+          />
           {fieldError("delivery_address")}
+          <p className="mt-1 text-xs text-gray-500">Pick both addresses and the delivery fee is calculated automatically.</p>
         </div>
         <div>
           <label className="label">Receiver Name <span className="text-red-500">*</span></label>
@@ -334,7 +367,24 @@ export default function OrderForm({ order, defaultClientId }: { order?: Order; d
         <SectionTitle>Pricing & Payment</SectionTitle>
         <div>
           <label className="label">Price (₦) <span className="text-red-500">*</span></label>
-          <input type="number" step="0.01" min={0} className="input" {...register("price", { required: "Price is required" })} />
+          <div className="flex gap-2">
+            <input type="number" step="0.01" min={0} className="input" {...register("price", { required: "Price is required" })} />
+            <button
+              type="button"
+              onClick={runCalc}
+              disabled={calcPrice.isPending || !(pickupAddress ?? "").trim() || !(deliveryAddress ?? "").trim()}
+              className="btn-secondary shrink-0 whitespace-nowrap"
+              title="Calculate delivery fee from the pickup and drop-off addresses"
+            >
+              {calcPrice.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calculator className="w-4 h-4" />}
+              Calculate
+            </button>
+          </div>
+          {priceInfo && (
+            <p className="mt-1 text-xs text-gray-500">
+              {priceInfo.distance_km} km · {priceInfo.pickup_zone} → {priceInfo.delivery_zone} · auto-calculated, editable
+            </p>
+          )}
           {fieldError("price")}
         </div>
         <div>

@@ -92,3 +92,19 @@ export const useMarkRemitted = () => {
     onSuccess: invalidate,
   });
 };
+
+export interface PriceCalculation {
+  delivery_fee: number;
+  distance_km: number;
+  pickup_zone: string | null;
+  delivery_zone: string | null;
+  pickup_formatted: string | null;
+  delivery_formatted: string | null;
+  breakdown: { base_fee: number; fuel_cost: number; distance_cost: number; adjustments: number } | null;
+}
+
+export const useCalculatePrice = () =>
+  useMutation({
+    mutationFn: (body: { pickup_address: string; dropoff_address: string }) =>
+      request<ApiResponse<PriceCalculation>>("/orders/calculate-price", { method: "POST", body }).then((r) => r.data),
+  });
