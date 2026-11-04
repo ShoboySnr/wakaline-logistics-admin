@@ -3,7 +3,7 @@
 import { use, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, ExternalLink, MapPin, Navigation, Package, RefreshCw } from "lucide-react";
+import { AlertTriangle, ExternalLink, MapPin, MessageCircle, Navigation, Package, Phone, RefreshCw } from "lucide-react";
 import {
   fetchOptimizedRoute,
   markRouteCollected,
@@ -12,6 +12,7 @@ import {
   validateDailyCode,
 } from "@/src/api/routeShare";
 import { useConfirmPayment } from "@/src/api/orders";
+import { useRider } from "@/src/api/riders";
 import { useStore } from "@/src/store";
 import useNotify from "@/src/hooks/useNotify";
 import DocumentTitle from "@/src/components/atoms/DocumentTitle";
@@ -22,6 +23,8 @@ import { OptimizedRoute, OrderStatus, RouteStop } from "@/src/types";
 
 const sessionKey = (id: string) => `wl-share-${id}`;
 const cacheKey = (id: string) => `wl-share-route-${id}`;
+const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`;
+const waHref = (phone: string) => `https://wa.me/${phone.replace(/[^\d]/g, "").replace(/^0/, "234")}`;
 
 export default function PublicRoutePage({ params }: { params: Promise<{ riderId: string }> }) {
   const { riderId } = use(params);
@@ -31,6 +34,8 @@ export default function PublicRoutePage({ params }: { params: Promise<{ riderId:
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const isAdmin = mounted && !!token;
+
+  const { data: rider } = useRider(isAdmin ? riderId : "");
 
   const [authed, setAuthed] = useState(false);
   const [riderName, setRiderName] = useState<string>("");
@@ -209,7 +214,7 @@ export default function PublicRoutePage({ params }: { params: Promise<{ riderId:
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold text-gray-900">
-                {isAdmin ? "Rider route" : riderName ? `${riderName}'s route` : "Your route"}
+                {isAdmin ? (rider?.name ? `${rider.name}'s route` : "Rider route") : riderName ? `${riderName}'s route` : "Your route"}
               </h1>
               {isAdmin ? (
                 <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-primary/10 text-primary">Admin view</span>
@@ -217,7 +222,18 @@ export default function PublicRoutePage({ params }: { params: Promise<{ riderId:
             </div>
             {data?.start ? <p className="text-sm text-gray-500 mt-0.5">Starts from {data.start.label}</p> : null}
           </div>
-          {isAdmin ? null : (
+          {isAdmin ? (
+            rider?.phone ? (
+              <div className="flex items-center gap-2 shrink-0">
+                <a href={telHref(rider.phone)} className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-medium text-gray-700">
+                  <Phone className="w-4 h-4" /> Call rider
+                </a>
+                <a href={waHref(rider.phone)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-lg bg-green-100 px-2.5 py-1.5 text-xs font-medium text-green-700">
+                  <MessageCircle className="w-4 h-4" /> WhatsApp
+                </a>
+              </div>
+            ) : null
+          ) : (
             <button onClick={shareLocation} className="btn-secondary !px-3 !py-1.5 !text-xs">
               <Navigation className="w-4 h-4" /> My location
             </button>

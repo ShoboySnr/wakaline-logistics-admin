@@ -149,5 +149,5 @@ export const usePaymentQueue = () =>
       request<{ success: boolean; data: Order[]; meta: PaginationMeta; stats: { awaiting_confirmation: number } }>(
         "/orders/payment-queue"
       ),
-    refetchInterval: 60_000,
+    refetchInterval: 5_000,
   });
