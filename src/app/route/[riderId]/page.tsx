@@ -11,6 +11,8 @@ import {
   setRouteStatus,
   validateDailyCode,
 } from "@/src/api/routeShare";
+import { useConfirmPayment } from "@/src/api/orders";
+import { useStore } from "@/src/store";
 import useNotify from "@/src/hooks/useNotify";
 import DocumentTitle from "@/src/components/atoms/DocumentTitle";
 import LoadingSpinner from "@/src/components/atoms/LoadingSpinner";
@@ -24,6 +26,11 @@ const cacheKey = (id: string) => `wl-share-route-${id}`;
 export default function PublicRoutePage({ params }: { params: Promise<{ riderId: string }> }) {
   const { riderId } = use(params);
   const notify = useNotify();
+
+  const token = useStore((s) => s.token);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const isAdmin = mounted && !!token;
 
   const [authed, setAuthed] = useState(false);
   const [riderName, setRiderName] = useState<string>("");
@@ -49,7 +56,8 @@ export default function PublicRoutePage({ params }: { params: Promise<{ riderId:
   const { data: route, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ["share-route", riderId, coords],
     queryFn: () => fetchOptimizedRoute(riderId, coords),
-    enabled: authed,
+    enabled: isAdmin || authed,
+    refetchInterval: isAdmin ? 30_000 : false,
   });
 
   useEffect(() => {
@@ -135,7 +143,29 @@ export default function PublicRoutePage({ params }: { params: Promise<{ riderId:
     }
   };
 
-  if (!authed) {
+  const confirmPayment = useConfirmPayment();
+  const runConfirm = async (stop: RouteStop) => {
+    setBusy(`${stop.order_id}-pay-confirm`);
+    try {
+      await confirmPayment.mutateAsync(stop.order_id);
+      await refetch();
+      notify.success("Payment confirmed.");
+    } catch (e) {
+      notify.error(e instanceof Error ? e.message : "Could not update.");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  if (!mounted) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gray-50">
+        <LoadingSpinner />
+      </main>
+    );
+  }
+
+  if (!isAdmin && !authed) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
         <DocumentTitle title="Your Route" />
@@ -177,14 +207,21 @@ export default function PublicRoutePage({ params }: { params: Promise<{ riderId:
       <div className="mx-auto max-w-2xl px-4 py-5 space-y-5">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">
-              {riderName ? `${riderName}'s route` : "Your route"}
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-gray-900">
+                {isAdmin ? "Rider route" : riderName ? `${riderName}'s route` : "Your route"}
+              </h1>
+              {isAdmin ? (
+                <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-primary/10 text-primary">Admin view</span>
+              ) : null}
+            </div>
             {data?.start ? <p className="text-sm text-gray-500 mt-0.5">Starts from {data.start.label}</p> : null}
           </div>
-          <button onClick={shareLocation} className="btn-secondary !px-3 !py-1.5 !text-xs">
-            <Navigation className="w-4 h-4" /> My location
-          </button>
+          {isAdmin ? null : (
+            <button onClick={shareLocation} className="btn-secondary !px-3 !py-1.5 !text-xs">
+              <Navigation className="w-4 h-4" /> My location
+            </button>
+          )}
         </div>
 
         {isLoading && !cached ? (
@@ -227,7 +264,14 @@ export default function PublicRoutePage({ params }: { params: Promise<{ riderId:
                   <RouteMap stops={stops} start={data?.start ?? null} riderLocation={liveLocation} className="h-64 w-full" />
                 ) : null}
 
-                <RouteStopList stops={stops} busy={busy} onStatus={runStatus} onCollect={runCollect} allowFail={false} />
+                <RouteStopList
+                  stops={stops}
+                  busy={busy}
+                  onStatus={runStatus}
+                  onCollect={runCollect}
+                  onConfirm={isAdmin ? runConfirm : undefined}
+                  allowFail={isAdmin}
+                />
               </>
             )}
           </>
