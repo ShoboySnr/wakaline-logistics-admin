@@ -117,17 +117,16 @@ export default function OrderForm({ order, defaultClientId }: { order?: Order; d
 
   const { fields, append, remove, replace } = useFieldArray({ control, name: "stock_items" });
 
-  const [clientId, paymentMethod, amountReceived, pickupAddress, deliveryAddress] = useWatch({
-    control,
-    name: ["client_id", "payment_method", "amount_received", "pickup_address", "delivery_address"],
-  });
+  const [clientId, paymentMethod, amountReceived] = useWatch({ control, name: ["client_id", "payment_method", "amount_received"] });
 
   const calcPrice = useCalculatePrice();
+  const [calcPickup, setCalcPickup] = useState("");
+  const [calcDropoff, setCalcDropoff] = useState("");
   const [priceInfo, setPriceInfo] = useState<{ distance_km: number; pickup_zone: string | null; delivery_zone: string | null } | null>(null);
 
   const runCalc = async () => {
-    const pickup = (pickupAddress ?? "").trim();
-    const dropoff = (deliveryAddress ?? "").trim();
+    const pickup = calcPickup.trim();
+    const dropoff = calcDropoff.trim();
     if (!pickup || !dropoff) return;
     try {
       const result = await calcPrice.mutateAsync({ pickup_address: pickup, dropoff_address: dropoff });
@@ -162,7 +161,10 @@ export default function OrderForm({ order, defaultClientId }: { order?: Order; d
       setValue("sender_name", client.name);
       setValue("sender_phone", client.phone ?? "");
       setValue("sender_email", client.email ?? "");
-      if (client.pickup_address) setValue("pickup_address", client.pickup_address);
+      if (client.pickup_address) {
+        setValue("pickup_address", client.pickup_address);
+        setCalcPickup(client.pickup_address);
+      }
     }
   };
 
@@ -266,28 +268,15 @@ export default function OrderForm({ order, defaultClientId }: { order?: Order; d
         </div>
         <div className="md:col-span-2">
           <label className="label">Pickup Address <span className="text-red-500">*</span></label>
-          <input type="hidden" {...register("pickup_address", { required: "Pickup address is required" })} />
-          <AddressAutocomplete
-            value={pickupAddress ?? ""}
-            onChange={(v) => setValue("pickup_address", v, { shouldValidate: true })}
-            onResolved={runCalc}
-            placeholder="Start typing an address in Nigeria…"
-          />
+          <textarea rows={2} className="input" {...register("pickup_address", { required: "Pickup address is required" })} />
           {fieldError("pickup_address")}
         </div>
 
         <SectionTitle>Drop-off Information</SectionTitle>
         <div className="md:col-span-2">
           <label className="label">Drop-off Address <span className="text-red-500">*</span></label>
-          <input type="hidden" {...register("delivery_address", { required: "Drop-off address is required" })} />
-          <AddressAutocomplete
-            value={deliveryAddress ?? ""}
-            onChange={(v) => setValue("delivery_address", v, { shouldValidate: true })}
-            onResolved={runCalc}
-            placeholder="Start typing an address in Nigeria…"
-          />
+          <textarea rows={2} className="input" {...register("delivery_address", { required: "Drop-off address is required" })} />
           {fieldError("delivery_address")}
-          <p className="mt-1 text-xs text-gray-500">Pick both addresses and the delivery fee is calculated automatically.</p>
         </div>
         <div>
           <label className="label">Receiver Name <span className="text-red-500">*</span></label>
@@ -365,6 +354,33 @@ export default function OrderForm({ order, defaultClientId }: { order?: Order; d
         )}
 
         <SectionTitle>Pricing & Payment</SectionTitle>
+        <div className="md:col-span-2 rounded-lg p-4 bg-primary/5 border border-primary/30 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+            <Calculator className="w-4 h-4 text-primary" /> Fare Calculator
+          </div>
+          <div>
+            <label className="label">Calculate from — Pickup</label>
+            <AddressAutocomplete
+              value={calcPickup}
+              onChange={setCalcPickup}
+              onResolved={runCalc}
+              placeholder="Start typing a pickup address…"
+            />
+          </div>
+          <div>
+            <label className="label">Calculate from — Drop-off</label>
+            <AddressAutocomplete
+              value={calcDropoff}
+              onChange={setCalcDropoff}
+              onResolved={runCalc}
+              placeholder="Start typing a drop-off address…"
+            />
+          </div>
+          <p className="md:col-span-2 text-xs text-gray-500">
+            Enter both addresses and the price is calculated automatically. These are only for pricing — they don&apos;t change the order&apos;s pickup or drop-off above.
+          </p>
+        </div>
+
         <div>
           <label className="label">Price (₦) <span className="text-red-500">*</span></label>
           <div className="flex gap-2">
@@ -372,9 +388,9 @@ export default function OrderForm({ order, defaultClientId }: { order?: Order; d
             <button
               type="button"
               onClick={runCalc}
-              disabled={calcPrice.isPending || !(pickupAddress ?? "").trim() || !(deliveryAddress ?? "").trim()}
+              disabled={calcPrice.isPending || !calcPickup.trim() || !calcDropoff.trim()}
               className="btn-secondary shrink-0 whitespace-nowrap"
-              title="Calculate delivery fee from the pickup and drop-off addresses"
+              title="Calculate delivery fee from the fare calculator addresses"
             >
               {calcPrice.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calculator className="w-4 h-4" />}
               Calculate
