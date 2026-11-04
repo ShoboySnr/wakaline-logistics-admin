@@ -1,9 +1,9 @@
 "use client";
 
-import { use, useEffect, useMemo, useState } from "react";
+import { use, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, ExternalLink, MapPin, MessageCircle, Navigation, Package, Phone, RefreshCw, Video } from "lucide-react";
+import { AlertTriangle, ExternalLink, MapPin, MessageCircle, Navigation, Package, RefreshCw, RotateCcw } from "lucide-react";
 import {
   fetchOptimizedRoute,
   markRouteCollected,
@@ -14,7 +14,7 @@ import {
 import { useConfirmPayment } from "@/src/api/orders";
 import { useRider } from "@/src/api/riders";
 import { useStore } from "@/src/store";
-import { jitsiRoomUrl } from "@/src/helpers/format";
+import { OFFICE_WHATSAPP, whatsappHref } from "@/src/helpers/format";
 import useNotify from "@/src/hooks/useNotify";
 import DocumentTitle from "@/src/components/atoms/DocumentTitle";
 import LoadingSpinner from "@/src/components/atoms/LoadingSpinner";
@@ -24,8 +24,6 @@ import { OptimizedRoute, OrderStatus, RouteStop } from "@/src/types";
 
 const sessionKey = (id: string) => `wl-share-${id}`;
 const cacheKey = (id: string) => `wl-share-route-${id}`;
-const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`;
-const waHref = (phone: string) => `https://wa.me/${phone.replace(/[^\d]/g, "").replace(/^0/, "234")}`;
 
 export default function PublicRoutePage({ params }: { params: Promise<{ riderId: string }> }) {
   const { riderId } = use(params);
@@ -42,6 +40,8 @@ export default function PublicRoutePage({ params }: { params: Promise<{ riderId:
   const [riderName, setRiderName] = useState<string>("");
   const [code, setCode] = useState("");
   const [validating, setValidating] = useState(false);
+  const [forceCode, setForceCode] = useState(false);
+  const lastPush = useRef(0);
 
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [showMap, setShowMap] = useState(true);
@@ -58,6 +58,33 @@ export default function PublicRoutePage({ params }: { params: Promise<{ riderId:
       }
     } catch {}
   }, [riderId]);
+
+  useEffect(() => {
+    if (!authed || isAdmin || !navigator.geolocation) return;
+
+    const send = (pos: GeolocationPosition, force = false) => {
+      const now = Date.now();
+      if (!force && now - lastPush.current < 60_000) return;
+      lastPush.current = now;
+      pushRiderLocation(riderId, pos.coords.latitude, pos.coords.longitude).catch(() => {});
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        send(pos, true);
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 10_000 }
+    );
+
+    const watch = navigator.geolocation.watchPosition((pos) => send(pos), () => {}, {
+      enableHighAccuracy: true,
+      maximumAge: 30_000,
+    });
+
+    return () => navigator.geolocation.clearWatch(watch);
+  }, [authed, isAdmin, riderId]);
 
   const { data: route, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ["share-route", riderId, coords],
@@ -100,11 +127,23 @@ export default function PublicRoutePage({ params }: { params: Promise<{ riderId:
       } catch {}
       setRiderName(res.rider_name ?? "");
       setAuthed(true);
+      setForceCode(false);
+      setCode("");
     } catch (err) {
       notify.error(err instanceof Error ? err.message : "Invalid code.");
     } finally {
       setValidating(false);
     }
+  };
+
+  const resetAccess = () => {
+    try {
+      sessionStorage.removeItem(sessionKey(riderId));
+    } catch {}
+    setAuthed(false);
+    setRiderName("");
+    setForceCode(true);
+    notify.success("Access reset. Hand the phone to the rider to enter today's code.");
   };
 
   const shareLocation = () => {
@@ -171,7 +210,7 @@ export default function PublicRoutePage({ params }: { params: Promise<{ riderId:
     );
   }
 
-  if (!isAdmin && !authed) {
+  if (forceCode || (!isAdmin && !authed)) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
         <DocumentTitle title="Your Route" />
@@ -224,24 +263,26 @@ export default function PublicRoutePage({ params }: { params: Promise<{ riderId:
             {data?.start ? <p className="text-sm text-gray-500 mt-0.5">Starts from {data.start.label}</p> : null}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <a href={jitsiRoomUrl(riderId)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-primary">
-              <Video className="w-4 h-4" /> Join call
-            </a>
             {isAdmin ? (
-              rider?.phone ? (
-                <>
-                  <a href={telHref(rider.phone)} className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-medium text-gray-700">
-                    <Phone className="w-4 h-4" /> Call rider
+              <>
+                {rider?.phone ? (
+                  <a href={whatsappHref(rider.phone)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-lg bg-green-100 px-2.5 py-1.5 text-xs font-medium text-green-700">
+                    <MessageCircle className="w-4 h-4" /> Call Rider
                   </a>
-                  <a href={waHref(rider.phone)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-lg bg-green-100 px-2.5 py-1.5 text-xs font-medium text-green-700">
-                    <MessageCircle className="w-4 h-4" /> WhatsApp
-                  </a>
-                </>
-              ) : null
+                ) : null}
+                <button onClick={resetAccess} className="btn-secondary !px-3 !py-1.5 !text-xs">
+                  <RotateCcw className="w-4 h-4" /> Reset
+                </button>
+              </>
             ) : (
-              <button onClick={shareLocation} className="btn-secondary !px-3 !py-1.5 !text-xs">
-                <Navigation className="w-4 h-4" /> My location
-              </button>
+              <>
+                <a href={whatsappHref(OFFICE_WHATSAPP)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-lg bg-green-100 px-2.5 py-1.5 text-xs font-medium text-green-700">
+                  <MessageCircle className="w-4 h-4" /> Call Office
+                </a>
+                <button onClick={shareLocation} className="btn-secondary !px-3 !py-1.5 !text-xs">
+                  <Navigation className="w-4 h-4" /> My location
+                </button>
+              </>
             )}
           </div>
         </div>

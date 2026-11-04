@@ -7,13 +7,13 @@ import {
   ArrowLeft,
   Crosshair,
   ExternalLink,
+  MessageCircle,
   Package,
   RefreshCw,
-  Video,
 } from "lucide-react";
 import { useRider, useRiderLocation, useRiderRoute } from "@/src/api/riders";
 import { useConfirmPayment, useMarkPaymentCollected, useSetOrderStatus } from "@/src/api/orders";
-import { jitsiRoomUrl } from "@/src/helpers/format";
+import { whatsappHref } from "@/src/helpers/format";
 import { errorMessage } from "@/src/helpers/request";
 import useNotify from "@/src/hooks/useNotify";
 import DocumentTitle from "@/src/components/atoms/DocumentTitle";
@@ -138,9 +138,11 @@ export default function RiderRoutePage({ params }: { params: Promise<{ id: strin
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <a href={jitsiRoomUrl(id)} target="_blank" rel="noopener noreferrer" className="btn-secondary">
-            <Video className="w-4 h-4" /> Join call
-          </a>
+          {rider?.phone ? (
+            <a href={whatsappHref(rider.phone)} target="_blank" rel="noopener noreferrer" className="btn-secondary">
+              <MessageCircle className="w-4 h-4" /> Call Rider
+            </a>
+          ) : null}
           <button onClick={useMyLocation} className="btn-secondary">
             <Crosshair className="w-4 h-4" /> Use my location
           </button>

@@ -24,5 +24,7 @@ export const toDateTimeInput = (value: string | null | undefined) => {
   return local.toISOString().slice(0, 16);
 };
 
-export const jitsiRoomUrl = (riderId: string | number) =>
-  `https://meet.jit.si/WakaLineLogistics-Rider-${riderId}`;
+export const OFFICE_WHATSAPP = "+2348100665758";
+
+export const whatsappHref = (phone: string) =>
+  `https://wa.me/${phone.replace(/[^\d]/g, "").replace(/^0/, "234")}`;
