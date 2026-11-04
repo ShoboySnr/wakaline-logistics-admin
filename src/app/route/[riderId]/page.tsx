@@ -90,7 +90,7 @@ export default function PublicRoutePage({ params }: { params: Promise<{ riderId:
     queryKey: ["share-route", riderId, coords],
     queryFn: () => fetchOptimizedRoute(riderId, coords),
     enabled: isAdmin || authed,
-    refetchInterval: isAdmin ? 30_000 : false,
+    refetchInterval: 15_000,
   });
 
   useEffect(() => {
