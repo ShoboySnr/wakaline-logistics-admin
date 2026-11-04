@@ -4,8 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
-import { Calculator, Loader2, Plus, X } from "lucide-react";
-import { useCalculatePrice, useOrderFormOptions, useSaveOrder } from "@/src/api/orders";
+import { Calculator, Loader2, Plus, RotateCcw, X } from "lucide-react";
+import { useCalculatePrice, useOrderFormOptions, useRevertPayment, useSaveOrder } from "@/src/api/orders";
 import { ApiError, errorMessage } from "@/src/helpers/request";
 import { formatDate, statusLabel, toDateTimeInput } from "@/src/helpers/format";
 import useNotify from "@/src/hooks/useNotify";
@@ -107,6 +107,18 @@ export default function OrderForm({ order, defaultClientId }: { order?: Order; d
   const isEdit = !!order;
   const { data: options, isLoading } = useOrderFormOptions();
   const saveOrder = useSaveOrder(order?.id);
+  const revertPayment = useRevertPayment();
+
+  const handleRevertPayment = async () => {
+    if (!order) return;
+    if (!confirm("Revert this payment? The rider will be asked to confirm it again.")) return;
+    try {
+      await revertPayment.mutateAsync(order.id);
+      notify.success("Payment reverted. Ask the rider to confirm payment again.");
+    } catch (e) {
+      notify.error(errorMessage(e));
+    }
+  };
 
   const {
     register,
@@ -434,6 +446,25 @@ export default function OrderForm({ order, defaultClientId }: { order?: Order; d
             </p>
           </div>
         )}
+        {isEdit && (order?.payment_collected_at || order?.payment_confirmed_at) ? (
+          <div className="md:col-span-2 rounded-lg p-4 bg-amber-50 border border-amber-200 dark:bg-amber-900/20 dark:border-amber-800">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
+                  {order?.payment_confirmed_at ? "Payment confirmed" : "Payment collected — awaiting confirmation"}
+                </p>
+                <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                  {order?.payment_confirmed_at
+                    ? `Confirmed on ${formatDate(order.payment_confirmed_at, true)}`
+                    : `Collected on ${formatDate(order?.payment_collected_at, true)}`}
+                </p>
+              </div>
+              <button type="button" onClick={handleRevertPayment} disabled={revertPayment.isPending} className="btn-danger !px-3 !py-1.5 !text-xs">
+                <RotateCcw className="w-4 h-4" /> {revertPayment.isPending ? "Reverting…" : "Revert payment"}
+              </button>
+            </div>
+          </div>
+        ) : null}
         <div className="md:col-span-2 rounded-lg p-4 border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
           <label className="flex items-center gap-3 cursor-pointer">
             <input type="checkbox" className="w-4 h-4 accent-red-600" {...register("is_failed_delivery")} />

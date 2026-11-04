@@ -142,6 +142,15 @@ export const useConfirmPayment = () => {
   });
 };
 
+export const useRevertPayment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      request<ApiResponse<Order>>(`/orders/${id}/payment-revert`, { method: "PATCH" }).then((r) => r.data),
+    onSuccess: () => invalidateRouteAndOrders(queryClient),
+  });
+};
+
 export const usePaymentQueue = () =>
   useQuery({
     queryKey: ["orders", "payment-queue"],
